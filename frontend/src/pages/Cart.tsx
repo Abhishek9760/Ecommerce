@@ -38,7 +38,7 @@ import { CartContext } from "../context/CartContext";
 // ];
 
 export const Cart = ({ open, setOpen }) => {
-  const { cart: products, removeFromCart } = useContext(CartContext);
+  const { cart: products, removeFromCart, total } = useContext(CartContext);
   return (
     <Dialog open={open} onClose={setOpen} className="relative z-10">
       <DialogBackdrop
@@ -82,8 +82,8 @@ export const Cart = ({ open, setOpen }) => {
                           <li key={product.id} className="flex py-6">
                             <div className="h-24 w-24 flex-shrink-0 overflow-hidden rounded-md border border-gray-200">
                               <img
-                                alt={product.image}
-                                src={product.image}
+                                alt={product?.product?.image}
+                                src={product?.product?.image}
                                 className="h-full w-full object-cover object-center"
                               />
                             </div>
@@ -95,13 +95,10 @@ export const Cart = ({ open, setOpen }) => {
                                   <p className="ml-4">{product.price}</p>
                                 </div>
                                 <p className="mt-1 text-sm text-gray-500">
-                                  {product.color}
+                                  {product?.product?.name}
                                 </p>
                               </div>
                               <div className="flex flex-1 items-end justify-between text-sm">
-                                <p className="text-gray-500">
-                                  Size {product.size}
-                                </p>
                                 <p className="text-gray-500">
                                   Qty {product.quantity}
                                 </p>
@@ -127,17 +124,15 @@ export const Cart = ({ open, setOpen }) => {
                 <div className="border-t border-gray-200 px-4 py-6 sm:px-6">
                   <div className="flex justify-between text-base font-medium text-gray-900">
                     <p>Subtotal</p>
-                    <p>$262.00</p>
+                    <p>{total}</p>
                   </div>
-                  <p className="mt-0.5 text-sm text-gray-500">
-                    Shipping and taxes calculated at checkout.
-                  </p>
+
                   <div className="mt-6">
                     <Link
                       to="/checkout"
                       className="flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-6 py-3 text-base font-medium text-white shadow-sm hover:bg-indigo-700"
                     >
-                      Checkout
+                      Pay
                     </Link>
                   </div>
                   <div className="mt-6 flex justify-center text-center text-sm text-gray-500">

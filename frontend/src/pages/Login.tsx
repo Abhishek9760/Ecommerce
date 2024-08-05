@@ -1,4 +1,15 @@
+import { useContext, useEffect } from "react";
+import { UserContext } from "../context/UserContext";
+
 export const Login = () => {
+  const { login } = useContext(UserContext);
+  const handleFormSubmit = async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const data = Object.fromEntries(formData);
+    await login(data);
+  };
+
   return (
     <>
       <div className="flex min-h-full flex-1">
@@ -26,7 +37,7 @@ export const Login = () => {
 
             <div className="mt-10">
               <div>
-                <form action="#" method="POST" className="space-y-6">
+                <form onSubmit={handleFormSubmit} className="space-y-6">
                   <div>
                     <label
                       htmlFor="email"
@@ -37,7 +48,7 @@ export const Login = () => {
                     <div className="mt-2">
                       <input
                         id="email"
-                        name="email"
+                        name="username"
                         type="email"
                         autoComplete="email"
                         required

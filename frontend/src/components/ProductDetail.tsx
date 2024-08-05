@@ -9,25 +9,58 @@ import {
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { StarIcon } from "@heroicons/react/20/solid";
 import { CartContext } from "../context/CartContext";
+import { UserContext } from "../context/UserContext";
+import { apiInstance } from "../utils/axios";
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
 }
 
-export const ProductDetail = ({ open, setOpen, product }) => {
-  const [selectedSize, setSelectedSize] = useState({});
+export const ProductDetail = ({
+  open,
+  setOpen,
+  product,
+  isOwn,
+  deleteProduct,
+  isNgo,
+  getProducts,
+}) => {
   const { addToCart } = useContext(CartContext);
+  const { user } = useContext(UserContext);
 
-  const handleFormSubmit = (e) => {
-    e.preventDefault();
+  const donateProduct = (e) => {
     const formData = new FormData(e.target);
+    formData.set("product_id", product?.id);
 
-    const size = formData.get("size[name]");
-    const newProd = { ...product, size };
+    apiInstance
+      .post("/products/donate/", formData)
+      .then((res) => alert("Product is donated"))
+      .catch((err) => alert("Some error has occured"));
+  };
 
-    if (!size) {
-      alert("Please select the size");
-    } else addToCart(newProd);
+  const claimProduct = () => {
+    if (user?.user?.id) {
+      const data = { bought_by: user?.user?.id, product_id: product?.id };
+      apiInstance
+        .post("/products/claim/", data)
+        .then((res) => {
+          getProducts();
+          setOpen(false);
+        })
+        .catch((err) => alert("Some error has occured"));
+    }
+  };
+
+  const handleFormSubmit = async (e) => {
+    e.preventDefault();
+    await donateProduct(e);
+    // setOpen(false);
+    // const id = product?.id;
+    // const formData = new FormData(e.target);
+    // const quantity = formData.get("quantity");
+    // const newProd = { id, quantity, product };
+
+    // await addToCart(newProd);
   };
 
   return (
@@ -83,53 +116,94 @@ export const ProductDetail = ({ open, setOpen, product }) => {
                     </h3>
 
                     <form onSubmit={handleFormSubmit}>
-                      {/* Colors */}
-
-                      {/* Sizes */}
-                      <fieldset aria-label="Choose a size" className="mt-10">
-                        <div className="flex items-center justify-between">
-                          <div className="text-sm font-medium text-gray-900">
-                            Size
-                          </div>
-                        </div>
-
-                        <RadioGroup
-                          value={selectedSize}
-                          onChange={setSelectedSize}
-                          name="size"
-                          aria-required={true}
-                          className="mt-4 grid grid-cols-4 gap-4"
-                        >
-                          {product?.sizes?.map((size) => (
-                            <Radio
-                              aria-required={true}
-                              key={size.name}
-                              value={size}
-                              disabled={false}
-                              className={classNames(
-                                true
-                                  ? "cursor-pointer bg-white text-gray-900 shadow-sm"
-                                  : "cursor-not-allowed bg-gray-50 text-gray-200",
-                                "group relative flex items-center justify-center rounded-md border px-4 py-3 text-sm font-medium uppercase hover:bg-gray-50 focus:outline-none data-[focus]:ring-2 data-[focus]:ring-indigo-500 sm:flex-1"
-                              )}
+                      {product?.bought && (
+                        <>
+                          <div>
+                            <label
+                              htmlFor="name"
+                              className="block text-sm font-medium leading-6 text-gray-900"
                             >
-                              <span>{size.name}</span>
-
-                              <span
-                                aria-hidden="true"
-                                className="pointer-events-none absolute -inset-px rounded-md border-2 border-transparent group-data-[focus]:border group-data-[checked]:border-indigo-500"
+                              Full Name
+                            </label>
+                            <div className="relative mt-2 rounded-md shadow-sm">
+                              <input
+                                required
+                                id="name"
+                                name="name"
+                                placeholder="Full Name"
+                                className="block w-full rounded-md border-0 py-1.5 pl-7 pr-20 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                               />
-                            </Radio>
-                          ))}
-                        </RadioGroup>
-                      </fieldset>
-
-                      <button
-                        type="submit"
-                        className="mt-6 flex w-full items-center justify-center rounded-md border border-transparent bg-indigo-600 px-8 py-3 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                      >
-                        Add to bag
-                      </button>
+                            </div>
+                          </div>
+                          <div>
+                            <label
+                              htmlFor="phone"
+                              className="block text-sm font-medium leading-6 text-gray-900"
+                            >
+                              Phone number
+                            </label>
+                            <div className="relative mt-2 rounded-md shadow-sm">
+                              <input
+                                required
+                                id="phone"
+                                name="phone"
+                                placeholder="+91xxxxxxxxxx"
+                                className="block w-full rounded-md border-0 py-1.5 pl-7 pr-20 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                              />
+                            </div>
+                          </div>
+                          <div>
+                            <label
+                              htmlFor="address"
+                              className="block text-sm font-medium leading-6 text-gray-900"
+                            >
+                              Address
+                            </label>
+                            <div className="relative mt-2 rounded-md shadow-sm">
+                              <textarea
+                                required
+                                id="address"
+                                name="address"
+                                placeholder="Address"
+                                className="block w-full rounded-md border-0 py-1.5 pl-7 pr-20 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                              />
+                            </div>
+                          </div>
+                        </>
+                      )}
+                      {!isOwn ? (
+                        !isNgo ? (
+                          <button
+                            // type="submit"
+                            className="mt-6 flex w-full items-center justify-center rounded-md border border-transparent bg-indigo-600 px-8 py-3 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                          >
+                            Add to bag
+                          </button>
+                        ) : (
+                          <button
+                            type="submit"
+                            className="mt-6 flex w-full items-center justify-center rounded-md border border-transparent bg-indigo-600 px-8 py-3 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                            onClick={claimProduct}
+                          >
+                            Claim
+                          </button>
+                        )
+                      ) : !product?.bought ? (
+                        <button
+                          type="button"
+                          onClick={() => deleteProduct(product?.id)}
+                          className="mt-6 flex w-full items-center justify-center rounded-md border border-transparent bg-red-600 px-8 py-3 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                        >
+                          Delete
+                        </button>
+                      ) : (
+                        <button
+                          type="submit"
+                          className="mt-6 flex w-full items-center justify-center rounded-md border border-transparent bg-indigo-600 px-8 py-3 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                        >
+                          Donate
+                        </button>
+                      )}
                     </form>
                   </section>
                 </div>

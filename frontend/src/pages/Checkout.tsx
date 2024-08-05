@@ -1,18 +1,3 @@
-/*
-  This example requires some changes to your config:
-  
-  ```
-  // tailwind.config.js
-  module.exports = {
-    // ...
-    plugins: [
-      // ...
-      require('@tailwindcss/forms'),
-    ],
-  }
-  ```
-*/
-import { Fragment } from "react";
 import {
   Popover,
   PopoverButton,
@@ -22,24 +7,11 @@ import {
   TransitionChild,
 } from "@headlessui/react";
 import { ChevronUpIcon } from "@heroicons/react/20/solid";
-
-const products = [
-  {
-    id: 1,
-    name: "Micro Backpack",
-    href: "#",
-    price: "$70.00",
-    color: "Moss",
-    size: "5L",
-    imageSrc:
-      "https://tailwindui.com/img/ecommerce-images/checkout-page-04-product-01.jpg",
-    imageAlt:
-      "Moss green canvas compact backpack with double top zipper, zipper front pouch, and matching carry handle and backpack straps.",
-  },
-  // More products...
-];
+import { useContext } from "react";
+import { CartContext } from "../context/CartContext";
 
 export const Checkout = () => {
+  const { cart: products, subtotal, total } = useContext(CartContext);
   return (
     <div className="bg-white">
       {/* Background color split screen for large screens */}
@@ -77,17 +49,17 @@ export const Checkout = () => {
                   className="flex items-start space-x-4 py-6"
                 >
                   <img
-                    src={product.imageSrc}
-                    alt={product.imageAlt}
+                    src={product?.product.image}
+                    alt={product?.product.image}
                     className="h-20 w-20 flex-none rounded-md object-cover object-center"
                   />
                   <div className="flex-auto space-y-1">
-                    <h3>{product.name}</h3>
-                    <p className="text-gray-500">{product.color}</p>
-                    <p className="text-gray-500">{product.size}</p>
+                    <h3>{product?.product.name}</h3>
+
+                    <p className="text-gray-500">Qty: {product?.quantity}</p>
                   </div>
                   <p className="flex-none text-base font-medium">
-                    {product.price}
+                    {product?.product.price}
                   </p>
                 </li>
               ))}
@@ -96,22 +68,17 @@ export const Checkout = () => {
             <dl className="hidden space-y-6 border-t border-gray-200 pt-6 text-sm font-medium text-gray-900 lg:block">
               <div className="flex items-center justify-between">
                 <dt className="text-gray-600">Subtotal</dt>
-                <dd>$320.00</dd>
+                <dd>Rs.{subtotal}</dd>
               </div>
 
               <div className="flex items-center justify-between">
                 <dt className="text-gray-600">Shipping</dt>
-                <dd>$15.00</dd>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <dt className="text-gray-600">Taxes</dt>
-                <dd>$26.80</dd>
+                <dd>Rs.{Math.round(total - subtotal)}</dd>
               </div>
 
               <div className="flex items-center justify-between border-t border-gray-200 pt-6">
                 <dt className="text-base">Total</dt>
-                <dd className="text-base">$361.80</dd>
+                <dd className="text-base">Rs.{total}</dd>
               </div>
             </dl>
 
@@ -200,89 +167,6 @@ export const Checkout = () => {
                     autoComplete="email"
                     className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                   />
-                </div>
-              </div>
-            </section>
-
-            <section aria-labelledby="payment-heading" className="mt-10">
-              <h2
-                id="payment-heading"
-                className="text-lg font-medium text-gray-900"
-              >
-                Payment details
-              </h2>
-
-              <div className="mt-6 grid grid-cols-3 gap-x-4 gap-y-6 sm:grid-cols-4">
-                <div className="col-span-3 sm:col-span-4">
-                  <label
-                    htmlFor="name-on-card"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Name on card
-                  </label>
-                  <div className="mt-1">
-                    <input
-                      type="text"
-                      id="name-on-card"
-                      name="name-on-card"
-                      autoComplete="cc-name"
-                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                    />
-                  </div>
-                </div>
-
-                <div className="col-span-3 sm:col-span-4">
-                  <label
-                    htmlFor="card-number"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Card number
-                  </label>
-                  <div className="mt-1">
-                    <input
-                      type="text"
-                      id="card-number"
-                      name="card-number"
-                      autoComplete="cc-number"
-                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                    />
-                  </div>
-                </div>
-
-                <div className="col-span-2 sm:col-span-3">
-                  <label
-                    htmlFor="expiration-date"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Expiration date (MM/YY)
-                  </label>
-                  <div className="mt-1">
-                    <input
-                      type="text"
-                      name="expiration-date"
-                      id="expiration-date"
-                      autoComplete="cc-exp"
-                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="cvc"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    CVC
-                  </label>
-                  <div className="mt-1">
-                    <input
-                      type="text"
-                      name="cvc"
-                      id="cvc"
-                      autoComplete="csc"
-                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                    />
-                  </div>
                 </div>
               </div>
             </section>
@@ -400,33 +284,6 @@ export const Checkout = () => {
                       className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                     />
                   </div>
-                </div>
-              </div>
-            </section>
-
-            <section aria-labelledby="billing-heading" className="mt-10">
-              <h2
-                id="billing-heading"
-                className="text-lg font-medium text-gray-900"
-              >
-                Billing information
-              </h2>
-
-              <div className="mt-6 flex items-center">
-                <input
-                  id="same-as-shipping"
-                  name="same-as-shipping"
-                  type="checkbox"
-                  defaultChecked
-                  className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                />
-                <div className="ml-2">
-                  <label
-                    htmlFor="same-as-shipping"
-                    className="text-sm font-medium text-gray-900"
-                  >
-                    Same as shipping information
-                  </label>
                 </div>
               </div>
             </section>

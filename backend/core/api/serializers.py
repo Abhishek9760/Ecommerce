@@ -3,12 +3,26 @@ from rest_framework import serializers
 from core.models import (
     CustomUser,
     ProductCategory,
-    Size,
     Product,
     Cart,
     Address,
     Order,
+    CartItem,
+    ProductJourney,
 )
+
+
+class ProductJourneySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductJourney
+        fields = "__all__"
+
+
+class CartItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CartItem
+        fields = "__all__"
+        depth = 2
 
 
 class CustomUserSerializer(serializers.ModelSerializer):
@@ -20,55 +34,57 @@ class CustomUserSerializer(serializers.ModelSerializer):
 class ProductCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductCategory
-        fields = ["id", "name"]
-
-
-class SizeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Size
-        fields = ["id", "name"]
+        fields = "__all__"
 
 
 class ProductSerializer(serializers.ModelSerializer):
-    category = ProductCategorySerializer()
-    sizes = SizeSerializer(many=True)
+    category = serializers.CharField()
 
     class Meta:
         model = Product
-        fields = [
-            "id",
-            "name",
-            "description",
-            "price",
-            "category",
-            "quantity",
-            "sizes",
-            "image",
-            "featured",
-        ]
+        fields = "__all__"
+
+    def create(self, validated_data):
+        # Extract category name from validated data
+        category_name = validated_data.pop("category")
+        # user = validated_data.pop("user")
+        # user = CustomUser.objects.get(pk=user_id)
+        # Fetch or create ProductCategory instance
+        category, created = ProductCategory.objects.get_or_create(
+            name=category_name.lower()
+        )
+        # Create the Product instance
+        product = Product.objects.create(category=category, **validated_data)
+        print(product.active)
+        return product
+
+    def update(self, instance, validated_data):
+        category_name = validated_data.pop("category", None)
+        if category_name:
+            category, created = ProductCategory.objects.get_or_create(
+                name=category_name
+            )
+            instance.category = category
+
+        # Update other fields
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        return instance
 
 
 class CartSerializer(serializers.ModelSerializer):
-    products = ProductSerializer(many=True)
+    products = CartItemSerializer(many=True)
 
     class Meta:
         model = Cart
-        fields = ["id", "user", "products", "subtotal", "total", "updated", "timestamp"]
+        fields = "__all__"
 
 
 class AddressSerializer(serializers.ModelSerializer):
     class Meta:
         model = Address
-        fields = [
-            "id",
-            "name",
-            "nickname",
-            "address_line_1",
-            "city",
-            "country",
-            "state",
-            "postal_code",
-        ]
+        fields = "__all__"
 
 
 class OrderSerializer(serializers.ModelSerializer):
@@ -77,16 +93,14 @@ class OrderSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Order
-        fields = [
-            "id",
-            "order_id",
-            "shipping_address",
-            "shipping_address_final",
-            "cart",
-            "status",
-            "shipping_total",
-            "total",
-            "active",
-            "updated",
-            "timestamp",
-        ]
+        fields = "__all__"
+
+
+class ProductItemSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    quantity = serializers.IntegerField()
+
+
+class CartUpdateSerializer(serializers.Serializer):
+    user_id = serializers.IntegerField()
+    products = ProductItemSerializer(many=True)

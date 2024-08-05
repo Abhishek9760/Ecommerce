@@ -22,11 +22,11 @@ class ProductCategory(models.Model):
         return self.name
 
 
-class Size(models.Model):
-    name = models.CharField(max_length=50)
+# class Size(models.Model):
+#     name = models.CharField(max_length=50)
 
-    def __str__(self) -> str:
-        return self.name
+#     def __str__(self) -> str:
+#         return self.name
 
 
 def get_filename_ext(filepath):
@@ -48,23 +48,31 @@ def upload_image_path(instance, filename):
 
 class Product(models.Model):
     name = models.CharField(max_length=100)
+    user = models.ForeignKey(
+        to=CustomUser, null=True, blank=True, on_delete=models.CASCADE
+    )
     description = models.TextField()
     price = models.DecimalField(max_digits=10, decimal_places=2)
     category = models.ForeignKey(to=ProductCategory, on_delete=models.CASCADE)
-    quantity = models.PositiveIntegerField(default=1)
-    sizes = models.ManyToManyField(to=Size, blank=True)
     image = models.ImageField(upload_to=upload_image_path, null=True, blank=True)
     featured = models.BooleanField(default=False)
+    bought = models.BooleanField(default=False)
+    active = models.BooleanField(default=True)
 
     def __str__(self) -> str:
         return self.name
+
+
+class CartItem(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField()
 
 
 class Cart(models.Model):
     user = models.ForeignKey(
         CustomUser, on_delete=models.CASCADE, null=True, blank=True
     )
-    products = models.ManyToManyField(Product, blank=True)
+    products = models.ManyToManyField(CartItem, blank=True)
     subtotal = models.DecimalField(default=0.00, max_digits=100, decimal_places=2)
     total = models.DecimalField(default=0.00, max_digits=100, decimal_places=2)
     updated = models.DateTimeField(auto_now=True)
@@ -114,12 +122,33 @@ class Order(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
 
 
+# class Journey(models.Model):
+#     product = models.ForeignKey(
+#         to=Product, on_delete=models.CASCADE, null=True, blank=True
+#     )
+
+
+class ProductJourney(models.Model):
+    to = models.CharField(
+        choices=(("user", "user"), ("ngo", "ngo"), ("other", "other")), max_length=20
+    )
+    address = models.CharField(max_length=250)
+    name = models.CharField(max_length=100)
+    phone = models.CharField(max_length=100)
+    to_user = models.ForeignKey(
+        to=CustomUser, on_delete=models.CASCADE, null=True, blank=True
+    )
+    product = models.ForeignKey(
+        to=Product, on_delete=models.CASCADE, null=True, blank=True
+    )
+
+
 def m2m_changed_cart_receiver(sender, instance, action, *args, **kwargs):
     if action == "post_add" or action == "post_remove" or action == "post_clear":
         products = instance.products.all()
         total = 0
         for x in products:
-            total += x.price
+            total += x.product.price
         if instance.subtotal != total:
             instance.subtotal = total
             instance.save()

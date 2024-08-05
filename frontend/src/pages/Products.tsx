@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import {
   Dialog,
   DialogPanel,
@@ -12,6 +12,7 @@ import { XMarkIcon } from "@heroicons/react/24/outline";
 import { ChevronDownIcon, PlusIcon } from "@heroicons/react/20/solid";
 import { ProductDetail } from "../components/ProductDetail";
 import { Link } from "react-router-dom";
+import { UserContext } from "../context/UserContext";
 
 const breadcrumbs = [{ id: 1, name: "Men", href: "#" }];
 
@@ -20,6 +21,7 @@ function classNames(...classes) {
 }
 
 export const Products = () => {
+  const { user } = useContext(UserContext);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [open, setOpen] = useState(false);
 
@@ -27,33 +29,37 @@ export const Products = () => {
 
   const [filters, setFilters] = useState([]);
   const [products, setProducts] = useState([]);
+  const getProducts = async () => {
+    await fetch("http://127.0.0.1:8000/api/products/?bought=false")
+      .then((res) => res.json())
+      .then((data) => {
+        setProducts(data);
+      })
+      .catch((err) => console.log(err));
+  };
 
+  const getFilters = async () => {
+    await fetch("http://localhost:8000/api/filters/")
+      .then((res) => res.json())
+      .then((data) => {
+        setFilters(data);
+      })
+      .catch((err) => console.log(err));
+  };
   useEffect(() => {
-    const getFilters = async () => {
-      await fetch("http://localhost:8000/api/filters/")
-        .then((res) => res.json())
-        .then((data) => {
-          setFilters(data);
-        })
-        .catch((err) => console.log(err));
-    };
-
-    const getProducts = async () => {
-      await fetch("http://127.0.0.1:8000/api/products/")
-        .then((res) => res.json())
-        .then((data) => {
-          setProducts(data);
-        })
-        .catch((err) => console.log(err));
-    };
-
     getProducts();
     getFilters();
   }, []);
 
   return (
     <div className="bg-white">
-      <ProductDetail open={open} setOpen={setOpen} product={openedProduct} />
+      <ProductDetail
+        isNgo={user?.user?.is_ngo}
+        open={open}
+        setOpen={setOpen}
+        product={openedProduct}
+        getProducts={getProducts}
+      />
       <div>
         {/* Mobile filter dialog */}
         <Transition show={mobileFiltersOpen}>
