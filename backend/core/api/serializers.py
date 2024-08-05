@@ -55,7 +55,7 @@ class ProductSerializer(serializers.ModelSerializer):
         )
         # Create the Product instance
         product = Product.objects.create(category=category, **validated_data)
-        print(product.active)
+        print(product.active, validated_data)
         return product
 
     def update(self, instance, validated_data):
