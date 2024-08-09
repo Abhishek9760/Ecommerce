@@ -23,6 +23,7 @@ const navigation = {
     { name: "Products", href: "/products" },
     { name: "Add a product", href: "/add-product" },
     { name: "Manage your products", href: "/manage" },
+    { name: "Track", href: "/track" },
   ],
 };
 

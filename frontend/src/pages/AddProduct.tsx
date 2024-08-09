@@ -20,6 +20,8 @@ export const AddProduct = () => {
     e.preventDefault();
     const formData = new FormData(e.target);
     formData.set("user", user?.user?.id);
+    formData.set("active", true);
+    console.log(Object.fromEntries(formData));
 
     const res = await addProduct(formData);
     if (res) {

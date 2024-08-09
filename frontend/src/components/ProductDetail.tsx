@@ -42,7 +42,9 @@ export const ProductDetail = ({
     if (user?.user?.id) {
       const data = { bought_by: user?.user?.id, product_id: product?.id };
       apiInstance
-        .post("/products/claim/", data)
+        .post("/products/claim/", data, {
+          headers: { Authorization: `Bearer ${user?.token}` },
+        })
         .then((res) => {
           getProducts();
           setOpen(false);
@@ -61,6 +63,12 @@ export const ProductDetail = ({
     // const newProd = { id, quantity, product };
 
     // await addToCart(newProd);
+  };
+
+  const addProdToCart = async () => {
+    const id = product?.id;
+    const newProd = { id, product };
+    await addToCart(newProd);
   };
 
   return (
@@ -175,13 +183,15 @@ export const ProductDetail = ({
                         !isNgo ? (
                           <button
                             // type="submit"
+                            onClick={addProdToCart}
+                            type="button"
                             className="mt-6 flex w-full items-center justify-center rounded-md border border-transparent bg-indigo-600 px-8 py-3 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                           >
                             Add to bag
                           </button>
                         ) : (
                           <button
-                            type="submit"
+                            type="button"
                             className="mt-6 flex w-full items-center justify-center rounded-md border border-transparent bg-indigo-600 px-8 py-3 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                             onClick={claimProduct}
                           >

@@ -13,9 +13,24 @@ from core.models import (
 
 
 class ProductJourneySerializer(serializers.ModelSerializer):
+    from_name = serializers.SerializerMethodField()
+    to_name = serializers.SerializerMethodField()
+
     class Meta:
         model = ProductJourney
         fields = "__all__"
+
+    def get_from_name(self, obj):
+        # Ensure `from_user` exists and has a `name` attribute
+        if obj.from_user and hasattr(obj.from_user, "full_name"):
+            return obj.from_user.full_name
+        return None
+
+    def get_to_name(self, obj):
+        # Ensure `from_user` exists and has a `name` attribute
+        if obj.to_user and hasattr(obj.from_user, "full_name"):
+            return obj.to_user.full_name
+        return None
 
 
 class CartItemSerializer(serializers.ModelSerializer):
@@ -26,9 +41,10 @@ class CartItemSerializer(serializers.ModelSerializer):
 
 
 class CustomUserSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = CustomUser
-        fields = ["id", "username", "email", "is_ngo"]
+        fields = ["id", "username", "email", "is_ngo", "full_name"]
 
 
 class ProductCategorySerializer(serializers.ModelSerializer):
@@ -98,7 +114,7 @@ class OrderSerializer(serializers.ModelSerializer):
 
 class ProductItemSerializer(serializers.Serializer):
     id = serializers.IntegerField()
-    quantity = serializers.IntegerField()
+    # quantity = serializers.IntegerField()
 
 
 class CartUpdateSerializer(serializers.Serializer):

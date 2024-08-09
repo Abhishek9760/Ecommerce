@@ -10,6 +10,7 @@ from decimal import Decimal
 class CustomUser(AbstractUser):
 
     is_ngo = models.BooleanField(default=False)
+    full_name = models.CharField(max_length=255)
 
     class Meta:
         db_table = "users"
@@ -65,7 +66,7 @@ class Product(models.Model):
 
 class CartItem(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    quantity = models.PositiveIntegerField()
+    # quantity = models.PositiveIntegerField()
 
 
 class Cart(models.Model):
@@ -129,17 +130,29 @@ class Order(models.Model):
 
 
 class ProductJourney(models.Model):
-    to = models.CharField(
-        choices=(("user", "user"), ("ngo", "ngo"), ("other", "other")), max_length=20
+    from_user = models.ForeignKey(
+        to=CustomUser,
+        related_name="from_user",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
     )
     address = models.CharField(max_length=250)
     name = models.CharField(max_length=100)
     phone = models.CharField(max_length=100)
     to_user = models.ForeignKey(
-        to=CustomUser, on_delete=models.CASCADE, null=True, blank=True
+        to=CustomUser,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="to_user",
     )
     product = models.ForeignKey(
         to=Product, on_delete=models.CASCADE, null=True, blank=True
+    )
+    action = models.CharField(
+        choices=(("buy", "buy"), ("donate", "donate"), ("claim", "claim")),
+        max_length=255,
     )
 
 

@@ -12,30 +12,35 @@ import { Register } from "./pages/Register";
 import { CartContextProvider } from "./context/CartContext.tsx";
 import { UserContextProvider } from "./context/UserContext.tsx";
 import ManageProduct from "./pages/ManageProduct.tsx";
+import { Tracking } from "./pages/Tracking.tsx";
+import { ModalContextProvider } from "./context/ModelContext.tsx";
 
 function App() {
   const [cart, setCart] = useState([]);
   const [cartOpen, setCartOpen] = useState(false);
   return (
     <Router>
-      <UserContextProvider>
-        <CartContextProvider>
-          <div className="bg-white">
-            <Nav setCartOpen={setCartOpen} />
-            <Cart open={cartOpen} setOpen={setCartOpen} />
-            <Routes>
-              <Route path="/login" element={<Login />}></Route>
-              <Route path="/register" element={<Register />}></Route>
-              <Route path="/" element={<Home />}></Route>
-              <Route path="/products" element={<Products />}></Route>
-              <Route path="/checkout" element={<Checkout />}></Route>
-              <Route path="/add-product" element={<AddProduct />}></Route>
-              <Route path="/orders" element={<OrdersHistory />}></Route>
-              <Route path="/manage" element={<ManageProduct />}></Route>
-            </Routes>
-          </div>
-        </CartContextProvider>
-      </UserContextProvider>
+      <ModalContextProvider>
+        <UserContextProvider>
+          <CartContextProvider>
+            <div className="bg-white">
+              <Nav setCartOpen={setCartOpen} />
+              <Cart open={cartOpen} setOpen={setCartOpen} />
+              <Routes>
+                <Route path="/login" element={<Login />}></Route>
+                <Route path="/register" element={<Register />}></Route>
+                <Route path="/" element={<Home />}></Route>
+                <Route path="/products" element={<Products />}></Route>
+                <Route path="/checkout" element={<Checkout />}></Route>
+                <Route path="/add-product" element={<AddProduct />}></Route>
+                <Route path="/orders" element={<OrdersHistory />}></Route>
+                <Route path="/manage" element={<ManageProduct />}></Route>
+                <Route path="/track" element={<Tracking />}></Route>
+              </Routes>
+            </div>
+          </CartContextProvider>
+        </UserContextProvider>
+      </ModalContextProvider>
     </Router>
   );
 }

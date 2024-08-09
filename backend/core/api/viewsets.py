@@ -48,6 +48,8 @@ class ProductCategoryViewSet(viewsets.ModelViewSet):
 class ProductJourneyViewSet(viewsets.ModelViewSet):
     queryset = ProductJourney.objects.all()
     serializer_class = ProductJourneySerializer
+    filter_backends = (DjangoFilterBackend,)
+    filterset_fields = ["product"]
 
 
 class ProductViewSet(viewsets.ModelViewSet):
@@ -59,10 +61,10 @@ class ProductViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=["post"], url_path="claim")
     def claim(self, request):
         product_id = request.data.get("product_id")
-        bought_by_id = request.data.get("bought_by")
+        # bought_by_id = request.data.get("bought_by")
 
         # Validate inputs
-        if not product_id or not bought_by_id:
+        if not product_id or not request.user.is_authenticated:
             return Response(
                 {"error": "product_id and bought_by are required"},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -70,7 +72,7 @@ class ProductViewSet(viewsets.ModelViewSet):
 
         # Fetch product and user
         product = get_object_or_404(Product, id=product_id)
-        bought_by = get_object_or_404(CustomUser, id=bought_by_id)
+        # bought_by = get_object_or_404(CustomUser, id=bought_by_id)
 
         # Check if product is already bought
         if product.bought:
@@ -79,13 +81,21 @@ class ProductViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        from_ = product.user
+
+        print(from_)
         # Update the product's bought status
         product.bought = True
-        product.user = bought_by
+        product.user = request.user
         product.save()
 
         # Create a ProductJourney entry
-        ProductJourney.objects.create(to="user", to_user=bought_by, product=product)
+        ProductJourney.objects.create(
+            from_user=from_,
+            to_user=request.user,
+            product=product,
+            action="claim",
+        )
 
         return Response(
             {"status": "Product claimed successfully"}, status=status.HTTP_200_OK
@@ -117,13 +127,27 @@ class ProductViewSet(viewsets.ModelViewSet):
 
         # Update the product's bought status
         product.active = False
+        product.bought = True
         product.save()
 
-        cart_obj = Cart.objects.get()
+        for cart in Cart.objects.all():
+            # Retrieve the CartItem for the given product
+            cart_item = CartItem.objects.filter(product_id=product_id)
+            if len(cart_item) == 1:
+                cart_item = cart_item.first()
+            cart.products.remove(cart_item)
+            cart.save()
+
+        # cart_obj = Cart.objects.get(user=)
 
         # Create a ProductJourney entry
         ProductJourney.objects.create(
-            to="other", address=address, name=name, phone=phone, product=product
+            address=address,
+            name=name,
+            phone=phone,
+            product=product,
+            from_user=request.user,
+            action="donate",
         )
 
         return Response(
@@ -153,26 +177,24 @@ class CartViewSet(viewsets.ModelViewSet):
 
             for item in products_data:
                 product_id = item["id"]
-                quantity = item["quantity"]
+                # quantity = item["quantity"]
 
                 # Check if the product is already in the cart
                 cart_item, created = CartItem.objects.get_or_create(
-                    product_id=product_id, defaults={"quantity": quantity}
+                    product_id=product_id,
                 )
 
-                if not created:
-                    # If the CartItem already exists, update the quantity
-                    cart_item.quantity += quantity
-                    cart_item.save()
+                # if not created:
+                #     # If the CartItem already exists, update the quantity
+                #     # cart_item.quantity += quantity
+                #     cart_item.save()
 
                 # Add the CartItem to the Cart if it's not already there
                 if cart.products.filter(id=cart_item.id).count() == 0:
                     cart.products.add(cart_item)
 
             # Recalculate subtotal and total
-            cart.subtotal = sum(
-                item.product.price * item.quantity for item in cart.products.all()
-            )
+            cart.subtotal = sum(item.product.price for item in cart.products.all())
 
             cart.total = cart.subtotal  # Assuming no additional charges for simplicity
             cart.save()
@@ -218,9 +240,7 @@ class CartViewSet(viewsets.ModelViewSet):
         cart_item.delete()  # Optionally delete the CartItem if it is not used elsewhere
 
         # Recalculate subtotal and total
-        cart.subtotal = sum(
-            item.product.price * item.quantity for item in cart.products.all()
-        )
+        cart.subtotal = sum(item.product.price for item in cart.products.all())
         cart.total = cart.subtotal  # Assuming no additional charges for simplicity
         cart.save()
 
