@@ -104,8 +104,6 @@ class AddressSerializer(serializers.ModelSerializer):
 
 
 class OrderSerializer(serializers.ModelSerializer):
-    shipping_address = AddressSerializer()
-    cart = CartSerializer()
 
     class Meta:
         model = Order

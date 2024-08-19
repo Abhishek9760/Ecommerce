@@ -94,39 +94,18 @@ class Address(models.Model):
     postal_code = models.CharField(max_length=120)
 
 
-ORDER_STATUS_CHOICES = (
-    ("created", "Created"),
-    ("paid", "Paid"),
-    ("shipped", "Shipped"),
-    ("refunded", "Refunded"),
-)
-
-
 class Order(models.Model):
-    order_id = models.CharField(max_length=120, blank=True)  # AB31DE3
-    shipping_address = models.ForeignKey(
-        Address,
-        related_name="shipping_address",
-        null=True,
-        blank=True,
-        on_delete=models.CASCADE,
-    )
-    shipping_address_final = models.TextField(blank=True, null=True)
-    cart = models.ForeignKey(Cart, on_delete=models.CASCADE)
-    status = models.CharField(
-        max_length=120, default="created", choices=ORDER_STATUS_CHOICES
-    )
-    shipping_total = models.DecimalField(default=5.99, max_digits=100, decimal_places=2)
-    total = models.DecimalField(default=0.00, max_digits=100, decimal_places=2)
-    active = models.BooleanField(default=True)
-    updated = models.DateTimeField(auto_now=True)
-    timestamp = models.DateTimeField(auto_now_add=True)
+    email = models.EmailField(null=True)
+    address = models.TextField(null=True)
+    company = models.CharField(max_length=255, null=True)
+    city = models.CharField(max_length=255, null=True)
+    state = models.CharField(max_length=255, null=True)
+    postalcode = models.CharField(max_length=20, null=True)
+    total_price = models.DecimalField(max_digits=10, decimal_places=2, null=True)
+    created_at = models.DateTimeField(auto_now=True)
 
-
-# class Journey(models.Model):
-#     product = models.ForeignKey(
-#         to=Product, on_delete=models.CASCADE, null=True, blank=True
-#     )
+    def __str__(self):
+        return f"Order {self.id} - {self.email}"
 
 
 class ProductJourney(models.Model):

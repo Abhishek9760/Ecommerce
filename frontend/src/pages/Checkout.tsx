@@ -9,9 +9,22 @@ import {
 import { ChevronUpIcon } from "@heroicons/react/20/solid";
 import { useContext } from "react";
 import { CartContext } from "../context/CartContext";
+import { baseUrl } from "../constants";
 
 export const Checkout = () => {
-  const { cart: products, subtotal, total } = useContext(CartContext);
+  const {
+    cart: products,
+    subtotal,
+    total,
+    createOrder,
+  } = useContext(CartContext);
+
+  const handleCheckout = async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+
+    await createOrder(formData);
+  };
   return (
     <div className="bg-white">
       {/* Background color split screen for large screens */}
@@ -43,7 +56,7 @@ export const Checkout = () => {
               role="list"
               className="divide-y divide-gray-200 text-sm font-medium text-gray-900"
             >
-              {products.map((product) => (
+              {products.map((product: any) => (
                 <li
                   key={product.id}
                   className="flex items-start space-x-4 py-6"
@@ -142,7 +155,11 @@ export const Checkout = () => {
           </div>
         </section>
 
-        <form className="px-4 pb-36 pt-16 sm:px-6 lg:col-start-1 lg:row-start-1 lg:px-0 lg:pb-16">
+        <form
+          onSubmit={handleCheckout}
+          method="post"
+          className="px-4 pb-36 pt-16 sm:px-6 lg:col-start-1 lg:row-start-1 lg:px-0 lg:pb-16"
+        >
           <div className="mx-auto max-w-lg lg:max-w-none">
             <section aria-labelledby="contact-info-heading">
               <h2
@@ -163,7 +180,7 @@ export const Checkout = () => {
                   <input
                     type="email"
                     id="email-address"
-                    name="email-address"
+                    name="email"
                     autoComplete="email"
                     className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                   />
@@ -215,23 +232,6 @@ export const Checkout = () => {
                   </div>
                 </div>
 
-                <div className="sm:col-span-3">
-                  <label
-                    htmlFor="apartment"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Apartment, suite, etc.
-                  </label>
-                  <div className="mt-1">
-                    <input
-                      type="text"
-                      id="apartment"
-                      name="apartment"
-                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                    />
-                  </div>
-                </div>
-
                 <div>
                   <label
                     htmlFor="city"
@@ -261,7 +261,7 @@ export const Checkout = () => {
                     <input
                       type="text"
                       id="region"
-                      name="region"
+                      name="state"
                       autoComplete="address-level1"
                       className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                     />
@@ -279,7 +279,7 @@ export const Checkout = () => {
                     <input
                       type="text"
                       id="postal-code"
-                      name="postal-code"
+                      name="postalcode"
                       autoComplete="postal-code"
                       className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                     />
