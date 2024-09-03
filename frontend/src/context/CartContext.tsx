@@ -35,24 +35,24 @@ export const CartContextProvider = ({ children }) => {
     document.body.appendChild(script);
   };
 
-  const handlePaymentSuccess = async (response) => {
+   const handlePaymentSuccess = async (response) => {
     try {
+      console.log("success called");
+      console.log(response);
       let bodyData = new FormData();
 
       // we will send the response we've got from razorpay to the backend to validate the payment
       bodyData.append("response", JSON.stringify(response));
+      // bodyData.append("order_oid", order?.oid);
 
-      await Axios({
-        url: `${server}/razorpay/payment/success/`,
-        method: "POST",
-        data: bodyData,
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-      })
+      await apiInstance
+        .post("razorpay/payment/success/", bodyData, {
+          
+          headers: { Authorization: `Bearer ${user?.token}` },
+        })
         .then((res) => {
           console.log("Everything is OK!");
+          window.location.href = "/";
         })
         .catch((err) => {
           console.log(err);
@@ -62,33 +62,23 @@ export const CartContextProvider = ({ children }) => {
     }
   };
 
-  const showRazorpay = async () => {
-    const res = await loadScript();
 
-    let bodyData = new FormData();
+  const showRazorpay = async (bodyData: FormData) => {
+    const userId = user?.user?.id;
 
-    // we will pass the amount and product name to the backend using form data
-    bodyData.append("amount", amount.toString());
-    bodyData.append("name", name);
+    bodyData.append("userid", userId)
+    bodyData.append("amount", total.toString());
 
-    const data = await Axios({
-      url: `${server}/razorpay/pay/`,
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      data: bodyData,
-    }).then((res) => {
-      return res;
-    });
+    const response = await apiInstance.post(`/razorpay/pay/`,bodyData,{headers: {Authorization: `Bearer ${user?.token}`}});
+    console.log(response);
+    
+    const data = response;
+  
 
-    // in data we will receive an object from the backend with the information about the payment
-    //that has been made by the user
 
     var options = {
-      key_id: process.env.REACT_APP_PUBLIC_KEY, // in react your environment variable must start with REACT_APP_
-      key_secret: process.env.REACT_APP_SECRET_KEY,
+      key_id: import.meta.env.REACT_APP_PUBLIC_KEY, // in react your environment variable must start with REACT_APP_
+      key_secret: import.meta.env.REACT_APP_SECRET_KEY,
       amount: data.data.payment.amount,
       currency: "INR",
       name: "Org. Name",
@@ -98,6 +88,8 @@ export const CartContextProvider = ({ children }) => {
       handler: function (response) {
         // we will handle success by calling handlePaymentSuccess method and
         // will pass the response that we've got from razorpay
+        console.log(response);
+        
         handlePaymentSuccess(response);
       },
       prefill: {
@@ -125,7 +117,6 @@ export const CartContextProvider = ({ children }) => {
       method: "POST",
       body,
       headers: {
-        // "Content-Type": "application/json",
         Authorization: `Bearer ${user?.token}`,
       },
     });
@@ -200,6 +191,7 @@ export const CartContextProvider = ({ children }) => {
         total,
         removeFromCart,
         createOrder,
+        showRazorpay
       }}
     >
       {children}

@@ -104,10 +104,12 @@ class AddressSerializer(serializers.ModelSerializer):
 
 
 class OrderSerializer(serializers.ModelSerializer):
+    cart = CartSerializer()
 
     class Meta:
         model = Order
         fields = "__all__"
+        depth = 2
 
 
 class ProductItemSerializer(serializers.Serializer):

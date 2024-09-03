@@ -33,12 +33,17 @@ export const UserContextProvider = ({ children }) => {
       body,
       headers: { "Content-Type": "application/json" },
     });
+    if (!response.ok){
+        alert("Wrong email or password");
+    }
     const data = await response.json();
     const userId = jwtDecode(data?.access)?.user_id;
 
-    apiInstance
+   apiInstance
       .get(`/users/${userId}`)
       .then((res) => {
+        console.log(res);
+        
         const newState = { token: data?.access, user: res.data };
         localStorage.setItem("user", JSON.stringify(newState));
         setUser(newState);

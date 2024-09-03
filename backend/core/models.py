@@ -95,14 +95,20 @@ class Address(models.Model):
 
 
 class Order(models.Model):
+    cart = models.ForeignKey(to=Cart, on_delete=models.CASCADE, null=True, blank=True)
     email = models.EmailField(null=True)
     address = models.TextField(null=True)
     company = models.CharField(max_length=255, null=True)
     city = models.CharField(max_length=255, null=True)
     state = models.CharField(max_length=255, null=True)
     postalcode = models.CharField(max_length=20, null=True)
-    total_price = models.DecimalField(max_digits=10, decimal_places=2, null=True)
+    amount = models.DecimalField(max_digits=10, decimal_places=2, null=True)
     created_at = models.DateTimeField(auto_now=True)
+    isPaid = models.BooleanField(default=False)
+    order_payment_id = models.CharField(max_length=100, null=True, blank=True)
+    # order_product = models.CharField(max_length=100)
+    # order_amount = models.CharField(max_length=25)
+    # order_date = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"Order {self.id} - {self.email}"
@@ -116,9 +122,9 @@ class ProductJourney(models.Model):
         null=True,
         blank=True,
     )
-    address = models.CharField(max_length=250)
-    name = models.CharField(max_length=100)
-    phone = models.CharField(max_length=100)
+    address = models.CharField(max_length=250, null=True, blank=True)
+    name = models.CharField(max_length=100, null=True, blank=True)
+    phone = models.CharField(max_length=100, null=True, blank=True)
     to_user = models.ForeignKey(
         to=CustomUser,
         on_delete=models.CASCADE,

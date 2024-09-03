@@ -202,5 +202,5 @@ SIMPLE_JWT = {
     "SLIDING_TOKEN_REFRESH_SERIALIZER": "rest_framework_simplejwt.serializers.TokenRefreshSlidingSerializer",
 }
 
-RZPAY_TEST_KEY_ID = "rzp_test_UiQNmAX7RQ9XAO"
-RZPAY_TEST_KEY_SECRET = "01JOijgULTFBLwoji9ccoOsd"
+RAZOR_KEY_ID = "rzp_test_wjP2KGHWjGSsw7"
+RAZOR_KEY_SECRET = "HqQqZWNPyjz31Bbg4HBLGMBY"

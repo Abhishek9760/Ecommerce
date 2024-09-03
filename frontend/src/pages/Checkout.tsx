@@ -17,13 +17,14 @@ export const Checkout = () => {
     subtotal,
     total,
     createOrder,
+    showRazorpay
   } = useContext(CartContext);
 
   const handleCheckout = async (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
 
-    await createOrder(formData);
+    await showRazorpay(formData);
   };
   return (
     <div className="bg-white">

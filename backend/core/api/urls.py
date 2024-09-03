@@ -10,7 +10,7 @@ from .viewsets import (
     OrderViewSet,
     ProductJourneyViewSet,
 )
-from .views import FilterOptionsAPIView
+from .views import FilterOptionsAPIView, start_payment, handle_payment_success
 
 router = DefaultRouter()
 router.register(r"users", CustomUserViewSet)
@@ -24,4 +24,6 @@ router.register(r"product-journeys", ProductJourneyViewSet)
 urlpatterns = [
     path("", include(router.urls)),
     path("filters/", FilterOptionsAPIView.as_view()),
+    path("razorpay/pay/", start_payment, name="payment"),
+    path("razorpay/payment/success/", handle_payment_success, name="payment_success"),
 ]
