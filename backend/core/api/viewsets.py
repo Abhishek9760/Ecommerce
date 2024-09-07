@@ -20,6 +20,7 @@ from .serializers import (
     CartUpdateSerializer,
     ProductJourneySerializer,
 )
+from django.db import transaction
 
 from rest_framework.decorators import action
 from django.shortcuts import get_object_or_404
@@ -53,11 +54,44 @@ class ProductJourneyViewSet(viewsets.ModelViewSet):
 
 
 class ProductViewSet(viewsets.ModelViewSet):
-    queryset = Product.objects.filter(active=True)
+    queryset = Product.objects.filter()
     serializer_class = ProductSerializer
     filter_backends = (DjangoFilterBackend,)
-    filterset_fields = ["user", "bought"]
+    filterset_fields = [
+        "user",
+        "bought",
+    ]
 
+
+class ProductViewSet(viewsets.ModelViewSet):
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializer
+    filter_backends = (DjangoFilterBackend,)
+    filterset_fields = []  # We'll handle custom filtering manually
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        request = self.request
+
+        # Fetch filters from the query parameters
+        categories = request.query_params.get("category", "")
+        subcategories = request.query_params.get("subcategory", "")
+
+        # Split the comma-separated values into lists
+        category_list = [cat.strip() for cat in categories.split(",") if cat.strip()]
+        subcategory_list = [
+            subcat.strip() for subcat in subcategories.split(",") if subcat.strip()
+        ]
+
+        # Filter by categories and subcategories
+        if category_list:
+            queryset = queryset.filter(category__name__in=category_list)
+        if subcategory_list:
+            queryset = queryset.filter(subcategory__name__in=subcategory_list)
+
+        return queryset
+
+    @transaction.atomic
     @action(detail=False, methods=["post"], url_path="claim")
     def claim(self, request):
         product_id = request.data.get("product_id")
@@ -101,6 +135,7 @@ class ProductViewSet(viewsets.ModelViewSet):
             {"status": "Product claimed successfully"}, status=status.HTTP_200_OK
         )
 
+    @transaction.atomic
     @action(detail=False, methods=["post"], url_path="donate")
     def donate(self, request):
         product_id = request.data.get("product_id")
@@ -135,18 +170,20 @@ class ProductViewSet(viewsets.ModelViewSet):
             cart_item = CartItem.objects.filter(product_id=product_id)
             if len(cart_item) == 1:
                 cart_item = cart_item.first()
-            cart.products.remove(cart_item)
-            cart.save()
+                cart.products.remove(cart_item)
+                cart.save()
 
         # cart_obj = Cart.objects.get(user=)
 
         # Create a ProductJourney entry
+        user = request.user
+        print(user, "-----")
         ProductJourney.objects.create(
             address=address,
             name=name,
             phone=phone,
             product=product,
-            from_user=request.user,
+            from_user=user,
             action="donate",
         )
 

@@ -1,7 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from core.models import ProductCategory, Cart, Order, ProductJourney
-from .serializers import ProductCategorySerializer
+from core.models import ProductCategory, Cart, Order, ProductJourney, SubCategory
+from .serializers import ProductCategorySerializer, SubCategorySerializer
 
 
 import razorpay
@@ -127,16 +127,26 @@ def start_payment(request):
 
 class FilterOptionsAPIView(APIView):
     def get(self, request, *args, **kwargs):
-        categories = ProductCategory.objects.all()
+        # Fetch all categories with their related subcategories
+        categories = ProductCategory.objects.prefetch_related("subcategories").all()
+
+        # Serialize the categories including subcategories
         category_serializer = ProductCategorySerializer(categories, many=True)
 
-        # Format the response
+        # Format the response data
         response_data = [
             {
                 "id": "category",
                 "name": "Category",
                 "options": [
-                    {"value": category["id"], "label": category["name"]}
+                    {
+                        "value": category["id"],
+                        "label": category["name"],
+                        "subcategories": [
+                            {"value": subcategory["id"], "label": subcategory["name"]}
+                            for subcategory in category["subcategories"]
+                        ],
+                    }
                     for category in category_serializer.data
                 ],
             },

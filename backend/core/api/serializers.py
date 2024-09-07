@@ -9,6 +9,7 @@ from core.models import (
     Order,
     CartItem,
     ProductJourney,
+    SubCategory,
 )
 
 
@@ -47,13 +48,22 @@ class CustomUserSerializer(serializers.ModelSerializer):
         fields = ["id", "username", "email", "is_ngo", "full_name"]
 
 
+class SubCategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SubCategory
+        fields = "__all__"
+
+
 class ProductCategorySerializer(serializers.ModelSerializer):
+    subcategories = SubCategorySerializer(many=True, read_only=True)
+
     class Meta:
         model = ProductCategory
         fields = "__all__"
 
 
 class ProductSerializer(serializers.ModelSerializer):
+    subcategory = serializers.CharField()
     category = serializers.CharField()
 
     class Meta:
@@ -61,26 +71,28 @@ class ProductSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
     def create(self, validated_data):
-        # Extract category name from validated data
-        category_name = validated_data.pop("category")
-        # user = validated_data.pop("user")
-        # user = CustomUser.objects.get(pk=user_id)
-        # Fetch or create ProductCategory instance
-        category, created = ProductCategory.objects.get_or_create(
-            name=category_name.lower()
+        subcategory_name = validated_data.pop("subcategory")
+        category = validated_data.pop("category")
+
+        category, created = ProductCategory.objects.get_or_create(name=category.lower())
+        # Fetch or create SubCategory instance
+        subcategory, created = SubCategory.objects.get_or_create(
+            name=subcategory_name.lower(), category=category
         )
+
         # Create the Product instance
-        product = Product.objects.create(category=category, **validated_data)
-        print(product.active, validated_data)
+        product = Product.objects.create(
+            subcategory=subcategory, category=category, **validated_data
+        )
         return product
 
     def update(self, instance, validated_data):
-        category_name = validated_data.pop("category", None)
-        if category_name:
-            category, created = ProductCategory.objects.get_or_create(
-                name=category_name
+        subcategory_name = validated_data.pop("subcategory", None)
+        if subcategory_name:
+            subcategory, created = SubCategory.objects.get_or_create(
+                name=subcategory_name
             )
-            instance.category = category
+            instance.subcategory = subcategory
 
         # Update other fields
         for attr, value in validated_data.items():

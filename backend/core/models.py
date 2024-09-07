@@ -16,20 +16,6 @@ class CustomUser(AbstractUser):
         db_table = "users"
 
 
-class ProductCategory(models.Model):
-    name = models.CharField(max_length=100)
-
-    def __str__(self) -> str:
-        return self.name
-
-
-# class Size(models.Model):
-#     name = models.CharField(max_length=50)
-
-#     def __str__(self) -> str:
-#         return self.name
-
-
 def get_filename_ext(filepath):
     base_name = os.path.basename(filepath)
     name, ext = os.path.splitext(base_name)
@@ -47,14 +33,39 @@ def upload_image_path(instance, filename):
     )
 
 
+class ProductCategory(models.Model):
+    name = models.CharField(max_length=100)
+
+    def __str__(self) -> str:
+        return self.name
+
+
+class SubCategory(models.Model):
+    name = models.CharField(max_length=100)
+    category = models.ForeignKey(
+        ProductCategory, related_name="subcategories", on_delete=models.CASCADE
+    )
+
+    def __str__(self) -> str:
+        return self.name
+
+
 class Product(models.Model):
     name = models.CharField(max_length=100)
     user = models.ForeignKey(
-        to=CustomUser, null=True, blank=True, on_delete=models.CASCADE
+        to=CustomUser,  # Replace with your actual user model if different
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
     )
     description = models.TextField()
     price = models.DecimalField(max_digits=10, decimal_places=2)
-    category = models.ForeignKey(to=ProductCategory, on_delete=models.CASCADE)
+    subcategory = models.ForeignKey(
+        SubCategory, on_delete=models.CASCADE, null=True, blank=True
+    )
+    category = models.ForeignKey(
+        ProductCategory, on_delete=models.CASCADE, null=True, blank=True
+    )
     image = models.ImageField(upload_to=upload_image_path, null=True, blank=True)
     featured = models.BooleanField(default=False)
     bought = models.BooleanField(default=False)

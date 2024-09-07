@@ -9,6 +9,7 @@ from .models import (
     ProductCategory,
     CartItem,
     ProductJourney,
+    SubCategory,
 )
 
 admin.site.register(Address)
@@ -16,6 +17,7 @@ admin.site.register(Cart)
 admin.site.register(Order)
 admin.site.register(Product)
 admin.site.register(ProductCategory)
+admin.site.register(SubCategory)
 admin.site.register(CartItem)
 admin.site.register(ProductJourney)
 
